@@ -1,0 +1,102 @@
+[bridge]
+
+;
+; core configuration options
+;
+
+;
+; listener_port
+; port to listen for incoming feed requests
+;
+listener_port=7788
+
+;
+; listener_address
+; ipv4 address to listen; defaults to 127.0.0.1
+; 0.0.0.0 binds to all interfaces
+;
+listener_address=0.0.0.0
+
+;
+; feed_host
+; the IP address of this machine for Cb to contact with feed requests
+;
+feed_host=127.0.0.1
+
+;
+; binary_filter_query
+; Additional query options to filter only binaries of interest to the reversinglabs connector
+;binary_filter_query=is_executable_image:true -(digsig_publisher:"Microsoft Corporation" and digsig_result:"Signed")
+
+; Concurrency settings
+;
+; The following two parameters control how many concurrent queries will be
+; performed against the ReversingLabs server. The "quick_scan_threads" setting
+; specifies how many threads will be querying the reversinglabs appliance via
+; file hash at once. The "deep_scan_threads" setting specifies how many
+; full file scans can be actively "in flight" at a given time. The default
+; is that three files can be analyzed in parallel at any given time.
+;
+; ***WARNING***
+;
+; By setting reversinglabs_deep_scan_threads to GREATER THAN zero and submit_full_binaries to 1, you will be submitting
+; FULL binaries to ReversingLabs for analysis. This is different from reversinglabs_quick_scan_threads which ONLY submit the
+; HASH to ReversingLabs.
+; submit_full_binaries: 1 = True, 0 = False
+
+reversinglabs_quick_scan_threads=2
+;reversinglabs_deep_scan_threads=0
+;submit_full_binaries=0
+
+;
+; This username and password is given to you from ReversingLabs
+; it can be found either by connecting your ReversingLabs rep or
+; the ReversingLabs website.
+;
+
+reversinglabs_api_username=rl/test
+reversinglabs_api_password=1a2b3c
+
+;
+; reversinglabs URL
+; url for reversinglabs ticloud api host
+reversinglabs_api_host=https://ticloud01.reversinglabs.com/
+
+; ReversingLabs A1000 report visualization host
+reversinglabs_a1000_host=https://a1000.reversinglabs.com/
+
+;
+; legacy_feed_directory
+; Uncomment this and set to the directory containing feed reports from an earlier version of this connector
+;
+;legacy_feed_directory=
+
+;
+; Carbon Black Enterprise Server options
+;
+
+;
+; Carbon Black Enterprise Server URL
+;
+carbonblack_server_url=https://127.0.0.1/
+
+;
+; Carbon Black Enterprise Server API Token
+;
+carbonblack_server_token=
+
+;
+; Carbon Black Enterprise Server SSL Verfication
+; 0 = False, 1 = True
+carbonblack_server_sslverify=0
+
+;
+; Specify the number of days prior to rescanning a binary
+; Default: 365 days
+;
+days_rescan=365
+
+
+; log debug level
+; 0 = INFO, 1 = DEBUG
+debug = 1
