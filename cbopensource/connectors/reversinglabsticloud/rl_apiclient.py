@@ -46,7 +46,7 @@ class ReversingLabsAnalysisClient(object):
         self.username = username
         self.password = password
 
-        self.base_url = base_url if base_url else "https://ticloud01.reversinglabs.com/"
+        self.base_url = base_url
         if log_level:
             log.setLevel(logging.DEBUG)
         else:
