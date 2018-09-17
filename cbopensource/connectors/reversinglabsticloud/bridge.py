@@ -57,7 +57,8 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
             raise AnalysisTemporaryError(message="API error: %s" % str(err), retry_in=5*60)
 
         log.info("Result for md5: %s" % md5)
-        result_link = urljoin(self.report_visualisation_url, md5)
+        result_link = urljoin(self.report_visualisation_url, "uploads/?q=hash%")
+        result_link = urljoin(result_link, md5)
 
         malware_presence = result['rl']['malware_presence']
         status = malware_presence.get("status").upper()
