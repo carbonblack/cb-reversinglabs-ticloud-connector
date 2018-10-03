@@ -1,11 +1,54 @@
+<<<<<<< HEAD
+*.py[cod]
+*.pyc
+=======
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+>>>>>>> deae88c82bd121f10c055878cfe0b38d57a6fddf
 
 # C extensions
 *.so
 
+<<<<<<< HEAD
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# IDE exclusions
+.idea
+
+config.ini
+
+=======
 # Distribution / packaging
 .Python
 build/
@@ -102,3 +145,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+>>>>>>> deae88c82bd121f10c055878cfe0b38d57a6fddf
