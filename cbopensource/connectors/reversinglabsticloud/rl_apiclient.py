@@ -70,6 +70,8 @@ class ReversingLabsAnalysisClient(object):
         log.debug("Rescan hash: response = %s" % response)
         if response.status_code == 403:
             raise RLAPIQUOTAREACHED("Status code: {}, Error: Authorization has been provided in the request, but it is not valid.".format(response.status_code))
+        elif response.status_code < 200 or response.status_code >= 300:
+            raise Exception("Request for %s returned" % request_url)
 
         return response.json()
 
@@ -95,6 +97,8 @@ class ReversingLabsAnalysisClient(object):
 
         if response.status_code == 403:
             raise RLAPIQUOTAREACHED("Status code: {}, Error: Authorization has been provided in the request, but it is not valid.".format(response.status_code))
+        elif response.status_code >= 300 or response.status_code < 200:
+            raise Exception("RL api returned %d for %s" % response.status_code, resource_hash)
 
         return response.json()
 
@@ -145,6 +149,8 @@ class ReversingLabsAnalysisClient(object):
         sample_upload_url = urljoin(self.base_url, api_url)
 
         upload_file_response = self.session.post(sample_upload_url, data=file_data, headers=headers, verify=False)
+        if upload_file_response.status_code < 200 or response.status_code >= 300:
+            raise Exception("Request for file upload %s returned" % sample_upload_url)
 
         return upload_file_response
 
@@ -154,6 +160,8 @@ class ReversingLabsAnalysisClient(object):
         upload_metadata_xml_url = urljoin(self.base_url, api_url)
 
         upload_metadata_xml_response = self.session.post(upload_metadata_xml_url, data=metadata_xml, headers=headers, verify=False)
+        if upload_metadata_xml_response.status_code < 200 or response.status_code >= 300:
+            raise Exception("Request for metadata upload %s returned" % upload_metadata_xml_url)
 
         return upload_metadata_xml_response
 

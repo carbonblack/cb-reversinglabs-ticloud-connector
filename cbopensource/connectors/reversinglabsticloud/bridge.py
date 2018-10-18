@@ -57,26 +57,40 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
             raise AnalysisTemporaryError(message="API error: %s" % str(err), retry_in=5*60)
 
         log.info("Result for md5: %s" % md5)
-        result_link = urljoin(self.report_visualisation_url, "uploads/?q=hash%")
-        result_link = urljoin(result_link, md5)
+	result_link = "%s/uploads/?q=hash%%3A%s" % (self.report_visualisation_url.rstrip("/"), md5)
+        log.info("Result link: %s" % result_link)
 
         malware_presence = result['rl']['malware_presence']
         status = malware_presence.get("status").upper()
+        threat_name = malware_presence.get("threat_name")
+        if threat_name is None: 
+            threat_name = ""
 
-        total_scanners = int(malware_presence.get("scanner_count"))
-        scanner_match = int(malware_presence.get("scanner_match"))
         threat_level = int(malware_presence.get("threat_level"))
         trust_factor = int(malware_presence.get("trust_factor"))
-
+        
         score = SEVERITY[threat_level]
+       
+        if "scanner_count" in malware_presence and "scanner_match" in malware_presence:
+            total_scanners = int(malware_presence.get("scanner_count"))
+            scanner_match = int(malware_presence.get("scanner_match"))
+            malware_result = """ReversingLabs report for md5: %s; 
+                                RL Status: %s %s; 
+                                RL Trust Factor: %s; 
+                                Threat Level: %s; 
+                                AV detection number: %s/%s;
+                                """ % \
+                            (md5, status, threat_name, trust_factor, threat_level, scanner_match, total_scanners)
+        else:
+            malware_result = """ReversingLabs report for md5: %s; 
+                                RL Status: %s %s; 
+                                RL Trust factor: %s; 
+                                Threat level: %s;
+                                """ % \
+                            (md5, status, threat_name, trust_factor, threat_level)
 
-        malware_result = """ReversingLabs report for md5: %s.
-                            [ %s / %s ] Antivirus detected it as malicious
-                            Status: %s
-                            Score: %s
-                            Threat level: %s
-                            Trust factor: %s""" % \
-                         (md5, scanner_match, total_scanners, status, score, threat_level, trust_factor)
+
+
 
         report_string = """Report string (test string)"""
 
@@ -97,7 +111,7 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
                                          retry_in=15*60)
         except Exception as err:
             log.info(err)
-            raise AnalysisTemporaryError(message="There was an error. Error: {}".format(str(err)),
+            raise AnalysisTemporaryError(message="Error: {}".format(str(err)),
                                          retry_in=15*60)
 
         malware_presence = response["rl"]["malware_presence"]
@@ -188,7 +202,7 @@ class ReversingLabsTiCloudConnector(DetonationDaemon):
 
     def get_metadata(self):
         return feed.generate_feed(self.name,
-                                  summary="ReversingLabs is the industry’s leading static file analysis platform, providing access to the industry’s largest private collection of file reputation data with over 7 billion malware and goodware samples.  ReversingLabs File Reputation classifies file samples and enriches threat intelligence provided by Carbon Black.  The ReversingLabs A1000 malware analysis workstation integration with Carbon Black provides pivots for hunting and investigation by SOC/Analyst teams with YARA-based rules matching.",
+                                  summary="The ReversingLabs TitaniumCloud File Reputation, part of ReversingLabs Threat Intelligence provides up-to-date file reputation, Anti-Virus scan information and internal analysis information on billions of goodware and malware samples.Malware samples are continually reanalyzed to ensure that the reputation information is relevant at all times.In addition to file reputation and historical AV reputation, additional Threat Intelligence can be obtained from TitaniumCloud via multiple APIs and Feeds, which allow users to search for files by hash or anti-virus detection name. It is also possible to hunt for files from a single malware family, search for functionally similar samples, perform bulk queries, and receive alerts on file reputation changes. ",
                                   tech_data="A ReversingLabs private API key is required to use this feed. There are no requirements to share any data with Carbon Black to use this feed. However, binaries may be shared with ReversingLabs.",
                                   provider_url="https://www.reversinglabs.com/",
                                   icon_path="/usr/share/cb/integrations/reversinglabs-ticloud/cb-titaniumcloud.png",
@@ -205,7 +219,7 @@ class ReversingLabsTiCloudConnector(DetonationDaemon):
         self.password = self.get_config_string("reversinglabs_api_password", None)
 
         self.reversinglabs_api_url = self.get_config_string("reversinglabs_api_host", None)
-        self.report_visualisation_url = self.get_config_string("reversinglabs_a1000_host", "https://a1000.reversinglabs.com/")
+        self.report_visualisation_url = self.get_config_string("reversinglabs_a1000_host", "https://a1000.reversinglabs.com")
         self.days_rescan = self.get_config_string("days_rescan", None)
 
         # check submit binaries option
