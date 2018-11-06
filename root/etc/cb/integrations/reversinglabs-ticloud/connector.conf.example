@@ -92,9 +92,9 @@ carbonblack_server_sslverify=0
 
 ;
 ; Specify the number of days prior to rescanning a binary
-; Default: 365 days
+; Default: NEVER 
 ;
-days_rescan=365
+days_rescan=NEVER
 
 
 ; log debug level
