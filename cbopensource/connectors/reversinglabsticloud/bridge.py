@@ -10,6 +10,8 @@ from rl_apiclient import (ReversingLabsAnalysisClient, RLAPIQUOTAREACHED)
 from datetime import (datetime, timedelta)
 from requests import Session
 
+import traceback
+
 from urlparse import urljoin
 
 import logging
@@ -55,6 +57,7 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
         try:
             result = self.rl_analysis.get_report(md5) if not result else result
         except Exception as err:
+            log.info(traceback.format_exc())
             raise AnalysisTemporaryError(message="API error: %s" % str(err), retry_in=5 * 60)
 
         log.info("Result for md5: %s" % md5)
@@ -105,11 +108,11 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
         try:
             response = self.rl_analysis.get_report(resource_hash=md5sum)
         except RLAPIQUOTAREACHED as rle:
-            log.info(rle)
+            log.info(traceback.format_exc())
             raise AnalysisTemporaryError(message="Error: {}".format(str(rle)),
                                          retry_in=15 * 60)
         except Exception as err:
-            log.info(err)
+            log.info(traceback.format_exc())
             raise AnalysisTemporaryError(message="Error: {}".format(str(err)),
                                          retry_in=15 * 60)
 
@@ -117,7 +120,7 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
         status = malware_presence.get("status").upper()
 
         if 'UNKNOWN' in status:
-            raise AnalysisInProgress(retry_in=15 * 60)
+            return AnalysisInProgress(retry_in=15 * 60)
 
         # calculate if hash needs rescan
         datetime_now = datetime.utcnow()
@@ -140,11 +143,11 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
             try:
                 self.rl_analysis.rescan_hash(md5sum)
             except RLAPIQUOTAREACHED as rle:
-                log.debug(rle)
+                log.info(traceback.format_exc())
                 raise AnalysisTemporaryError(message="Error: {}".format(str(rle)),
                                              retry_in=15 * 60)
             except Exception as err:
-                log.debug(err)
+                log.info(traceback.format_exc())
                 raise AnalysisTemporaryError(message="There was an error. Error: {}".format(str(err)),
                                              retry_in=15 * 60)
 

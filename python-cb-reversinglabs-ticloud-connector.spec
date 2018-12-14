@@ -1,7 +1,7 @@
 %define name python-cb-reversinglabs-ticloud-connector
 %define version 1.0
 %define unmangled_version 1.0
-%define release 7
+%define release 8
 %define __prelink_undo_cmd %{nil}
 %global _enable_debug_package 0
 %global debug_package %{nil}
