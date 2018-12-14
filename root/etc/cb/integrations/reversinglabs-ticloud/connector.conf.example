@@ -26,7 +26,7 @@ feed_host=127.0.0.1
 ;
 ; binary_filter_query
 ; Additional query options to filter only binaries of interest to the reversinglabs connector
-;binary_filter_query=is_executable_image:true -(digsig_publisher:"Microsoft Corporation" and digsig_result:"Signed")
+binary_filter_query=is_executable_image:true -(digsig_publisher:"Microsoft Corporation" and digsig_result:"Signed")
 
 ; Concurrency settings
 ;
@@ -92,9 +92,9 @@ carbonblack_server_sslverify=0
 
 ;
 ; Specify the number of days prior to rescanning a binary
-; Default: NEVER 
+; Default: 0
 ;
-days_rescan=NEVER
+days_rescan=0
 
 
 ; log debug level

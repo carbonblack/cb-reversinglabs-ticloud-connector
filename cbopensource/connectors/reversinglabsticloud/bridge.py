@@ -16,7 +16,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-
 SEVERITY = {
     0: 0,
     1: 20,
@@ -29,7 +28,8 @@ SEVERITY = {
 
 class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
 
-    def __init__(self, name, username=None, password=None, url=None, days_rescan=None, report_visualisation_url=None, log_level=None, submit_full_binaries=None):
+    def __init__(self, name, username=None, password=None, url=None, days_rescan=None, report_visualisation_url=None,
+                 log_level=None, submit_full_binaries=None):
         super(ReversingLabsTiCloudProvider, self).__init__(name)
 
         session = Session()
@@ -44,7 +44,8 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
 
         self.submit_full_binaries = submit_full_binaries
         self.report_visualisation_url = report_visualisation_url
-        if int(days_rescan) > 0 and 'NEVER' not in days_rescan.upper():
+
+        if int(days_rescan) > 0:
             self.days_rescan = int(days_rescan)
         else:
             self.days_rescan = None
@@ -54,23 +55,23 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
         try:
             result = self.rl_analysis.get_report(md5) if not result else result
         except Exception as err:
-            raise AnalysisTemporaryError(message="API error: %s" % str(err), retry_in=5*60)
+            raise AnalysisTemporaryError(message="API error: %s" % str(err), retry_in=5 * 60)
 
         log.info("Result for md5: %s" % md5)
-	result_link = "%s/uploads/?q=hash%%3A%s" % (self.report_visualisation_url.rstrip("/"), md5)
+        result_link = "%s/uploads/?q=hash%%3A%s" % (self.report_visualisation_url.rstrip("/"), md5)
         log.info("Result link: %s" % result_link)
 
         malware_presence = result['rl']['malware_presence']
         status = malware_presence.get("status").upper()
         threat_name = malware_presence.get("threat_name")
-        if threat_name is None: 
+        if threat_name is None:
             threat_name = ""
 
         threat_level = int(malware_presence.get("threat_level"))
         trust_factor = int(malware_presence.get("trust_factor"))
-        
+
         score = SEVERITY[threat_level]
-       
+
         if "scanner_count" in malware_presence and "scanner_match" in malware_presence:
             total_scanners = int(malware_presence.get("scanner_count"))
             scanner_match = int(malware_presence.get("scanner_match"))
@@ -80,22 +81,20 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
                                 Threat Level: %s; 
                                 AV detection number: %s/%s;
                                 """ % \
-                            (md5, status, threat_name, trust_factor, threat_level, scanner_match, total_scanners)
+                             (md5, status, threat_name, trust_factor, threat_level, scanner_match, total_scanners)
         else:
             malware_result = """ReversingLabs report for md5: %s; 
                                 RL Status: %s %s; 
                                 RL Trust factor: %s; 
                                 Threat level: %s;
                                 """ % \
-                            (md5, status, threat_name, trust_factor, threat_level)
-
-
-
+                             (md5, status, threat_name, trust_factor, threat_level)
 
         report_string = """Report string (test string)"""
 
         return AnalysisResult(message=malware_result,
-                              extended_message=report_string,
+                              title=malware_result,
+                              description=report_string,
                               link=result_link,
                               score=score)
 
@@ -108,22 +107,25 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
         except RLAPIQUOTAREACHED as rle:
             log.info(rle)
             raise AnalysisTemporaryError(message="Error: {}".format(str(rle)),
-                                         retry_in=15*60)
+                                         retry_in=15 * 60)
         except Exception as err:
             log.info(err)
             raise AnalysisTemporaryError(message="Error: {}".format(str(err)),
-                                         retry_in=15*60)
+                                         retry_in=15 * 60)
 
         malware_presence = response["rl"]["malware_presence"]
         status = malware_presence.get("status").upper()
 
         if 'UNKNOWN' in status:
-            raise AnalysisInProgress(retry_in=15*60)
+            raise AnalysisInProgress(retry_in=15 * 60)
 
         # calculate if hash needs rescan
         datetime_now = datetime.utcnow()
         log.info("current time: %s" % datetime_now)
-        rescan_date = datetime_now - timedelta(days=int(self.days_rescan))
+        if self.days_rescan:
+            rescan_date = datetime_now - timedelta(days=int(self.days_rescan))
+        else:
+            rescan_date = None
         log.info("rescan date: %s" % rescan_date)
         last_seen_date_str = malware_presence.get('last_seen')
         log.info("last seen str: %s" % last_seen_date_str)
@@ -140,13 +142,13 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
             except RLAPIQUOTAREACHED as rle:
                 log.debug(rle)
                 raise AnalysisTemporaryError(message="Error: {}".format(str(rle)),
-                                             retry_in=15*60)
+                                             retry_in=15 * 60)
             except Exception as err:
                 log.debug(err)
                 raise AnalysisTemporaryError(message="There was an error. Error: {}".format(str(err)),
-                                             retry_in=15*60)
+                                             retry_in=15 * 60)
 
-            return AnalysisInProgress(message="Rescaning hash {}".format(md5sum), retry_in=60*60)
+            return AnalysisInProgress(message="Rescaning hash {}".format(md5sum), retry_in=60 * 60)
         else:
             return self.make_result(md5=md5sum, result=response)
 
@@ -161,7 +163,7 @@ class ReversingLabsTiCloudProvider(BinaryAnalysisProvider):
         if successfull_upload:
             return self.make_result(md5=md5sum)
         else:
-            raise AnalysisTemporaryError("Unable to upload file. md5sum: {}".format(md5sum), retry_in=30*60)
+            raise AnalysisTemporaryError("Unable to upload file. md5sum: {}".format(md5sum), retry_in=30 * 60)
 
 
 class ReversingLabsTiCloudConnector(DetonationDaemon):
@@ -190,13 +192,13 @@ class ReversingLabsTiCloudConnector(DetonationDaemon):
 
     def get_provider(self):
         reversinglabs_provider = ReversingLabsTiCloudProvider(name=self.name,
-                                                       username=self.username,
-                                                       password=self.password,
-                                                       days_rescan=self.days_rescan,
-                                                       report_visualisation_url=self.report_visualisation_url,
-                                                       submit_full_binaries=self.submit_full_binaries,
-                                                       url=self.reversinglabs_api_url,
-                                                       log_level=self.log_level)
+                                                              username=self.username,
+                                                              password=self.password,
+                                                              days_rescan=self.days_rescan,
+                                                              report_visualisation_url=self.report_visualisation_url,
+                                                              submit_full_binaries=self.submit_full_binaries,
+                                                              url=self.reversinglabs_api_url,
+                                                              log_level=self.log_level)
 
         return reversinglabs_provider
 
@@ -213,13 +215,15 @@ class ReversingLabsTiCloudConnector(DetonationDaemon):
         super(ReversingLabsTiCloudConnector, self).validate_config()
 
         # check configuration options
-        self.check_required_options(["reversinglabs_api_username", "reversinglabs_api_password", "reversinglabs_api_host"])
+        self.check_required_options(
+            ["reversinglabs_api_username", "reversinglabs_api_password", "reversinglabs_api_host"])
 
         self.username = self.get_config_string("reversinglabs_api_username", None)
         self.password = self.get_config_string("reversinglabs_api_password", None)
 
         self.reversinglabs_api_url = self.get_config_string("reversinglabs_api_host", None)
-        self.report_visualisation_url = self.get_config_string("reversinglabs_a1000_host", "https://a1000.reversinglabs.com")
+        self.report_visualisation_url = self.get_config_string("reversinglabs_a1000_host",
+                                                               "https://a1000.reversinglabs.com")
         self.days_rescan = self.get_config_string("days_rescan", None)
 
         # check submit binaries option
